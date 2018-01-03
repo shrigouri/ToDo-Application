@@ -1,0 +1,244 @@
+<html ng-app="ToDo">
+    <head>
+        <title>todo</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.6/angular.js"></script>
+    <link rel="stylesheet" href="styles/bootstrap.min.css">
+	
+	<style>
+    .done{text-decoration: line-through;color:#ccc;}
+	body {
+  background: #E0FFFF;
+}
+
+.todo-wrapper {
+  background: #FFC0CB;
+  width: 100%;
+}
+
+h2 {
+  font-size: 2em;
+  
+  font-family: megrim, fantasy;
+  background: #9ACD32;
+  padding: 40px;
+  margin: 0;
+  color: #221;
+  text-align: center;
+ }
+.emphasis {
+  font-family: vast-shadow, sans-serif;
+  font-size: 4em;
+}
+
+ul {
+  padding: 0px;
+  margin: 0px;
+}
+
+li {
+  font-family: megrim, fantasy;
+  font-size: 2em;
+  padding: 40px;
+  
+  background: #65d8cb; /* Old browsers */
+  background: -webkit-gradient(linear, 0 0, 0 100%, from(#65d8cb), to(#72f4e9));
+  background: -webkit-linear-gradient(#65d8cb 0%, #72f4e9 100%);
+  background: -moz-linear-gradient(#65d8cb 0%, #72f4e9 100%);
+  background: -o-linear-gradient(#65d8cb 0%, #72f4e9 100%);
+  background: linear-gradient(#65d8cb 0%, #72f4e9 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#65d8cb', endColorstr='#72f4e9',GradientType=0 );
+  list-style-type: none;
+  margin-left: 0px;
+  padding-left: 0px;
+}
+
+li input[type="checkbox"] {
+  width: 40px;
+}
+
+.done-true {
+  text-decoration: line-through;
+  color: #ddd;
+}
+
+.add-input {
+  width: 60%;
+  height: 20px;
+  float: left;
+  border: none;
+  padding: 40px 0;
+  font-size: 2em;
+  font-family: megrim, fantasy;
+  text-indent: 55px;
+}
+.add-btn {
+  width: 40%;
+  border: none;
+  background: #29F4E3;
+  padding: 0;
+  height: 100px;
+  h2 {
+   background: #29F4E3;
+   padding: 0;
+   font-size: 4em;
+   font-family: megrim, fantasy;
+   color: #333;
+  }
+}
+
+.clear-btn {
+  width: 100%;
+  border: none;
+  height: 100px;
+  background: #13756D;
+  font-size: 2em;
+  font-family: megrim, fantasy;
+  color: #aaa;
+}
+	</style>
+	</head>
+
+
+<body>
+  <div class="container">
+  <h1>write something below....</h1>
+  <div class="row">
+    <div id="list1" class="col-md-6" ng-controller='ToDoListController as list1'>
+	
+	<div class="todo-wrapper">
+      <h2>You've got  <span class="emphasis">  {{count}} </span>things to do</h2> 
+	
+       <h1>To Do:</h1>
+       <form name="frm" ng-submit="list1.addNewItem();" >
+       <input type="text" class="form-control" ng-model="list1.newItem" placeholder="New To Do Item" >
+	   <button ng-disabled="frm.$invalid">ADD</button>
+	   
+	   
+       </form>
+       <br>
+       <ul class="list-group">
+        <li class="list-group-item" ng-repeat="item in list1.items">
+          {{ item.name }}
+          <button type="button" class="btn btn-success btn-xs" ng-click="list1.completeToDoItem($index);">Mark as Complete</button>
+          <button type="button" class="btn btn-danger btn-xs" ng-click="list1.deleteToDoItem($index);">Delete</button
+		  
+        </li>
+      </ul>
+    </div>
+</div>
+      </div>
+  <div class="row">
+    <div id="list2" class="col-md-6" ng-controller='CompletedItemsController as list2'>
+       <h1>Completed:</h1>
+	   
+       <ul class="list-group">
+        <li class="list-group-item" ng-repeat="item in list2.items">
+         	{{ item.name}}
+         	<button type="button" class="btn btn-danger btn-xs" ng-click="list2.deleteCompletedItem($index);">Delete</button>
+        </li>
+      </ul>
+	
+    </div>
+   </div>
+  </div>
+	
+</body>
+</html>	
+
+<script>
+    
+    (function () {
+	'use strict';
+
+		angular.module('ToDo', [])
+		.controller('ToDoListController', ToDoListController)
+		.controller('CompletedItemsController', CompletedItemsController)
+		.service('ToDoListService', ToDoListService);
+
+		ToDoListController.$inject = ['ToDoListService','$scope'];
+		CompletedItemsController.$inject = ['ToDoListService'];
+		ToDoListService.$inject = ['$filter'];
+		
+  
+		
+		function ToDoListController(ToDoListService,$scope) {
+            
+           $scope.count=0;
+			var showList = this;
+	  		showList.items = ToDoListService.getTodoList();
+	  		showList.newItem = "";
+
+  			showList.completeToDoItem = function(itemIdex){
+    		var itemName = showList.items[itemIdex]["name"];
+    		ToDoListService.addCompletedItem(itemName);
+    		ToDoListService.removeToDoItem(itemIdex);
+				$scope.count--;
+  			};
+  			
+            
+  			showList.deleteToDoItem = function(itemIndex){
+  			ToDoListService.removeToDoItem(itemIndex);
+                $scope.count--;
+  			};
+  			
+  			showList.addNewItem = function () {
+    			ToDoListService.addToDoItem(showList.newItem);
+                $scope.count++;
+  			}
+		}
+
+		function CompletedItemsController(ToDoListService) {
+		  var showList = this;
+		  showList.items = ToDoListService.getCompletedList();
+		  showList.deleteCompletedItem = function(itemIndex){
+		  ToDoListService.removeCompletedItem(itemIndex);
+		  };
+		}
+
+
+
+		function ToDoListService($filter) {
+		  var service = this;
+		  var todoList = [];
+		  var completedList = [];
+		  
+		  var getTotalTodos;
+
+		  service.getTodoList = function () {
+			return todoList;
+		  };
+		  
+		  service.getCompletedList = function () {
+			return completedList;
+		  };
+
+		  service.removeToDoItem = function (itemIdex) {
+			todoList.splice(itemIdex, 1);
+		  };
+
+		 service.removeCompletedItem = function(itemIndex){
+		 	completedList.splice(itemIndex,1);
+		 };
+		 
+		 
+		 
+		 service.addToDoItem = function(itemName){
+		  
+		  var item = { 
+		  name: itemName 
+				}; 
+				todoList.push(item);
+		 };
+
+		 service.addCompletedItem = function(itemName){
+		   var finalStr = itemName + ' completed on - ' +  $filter('date')(new Date(), 'yyyy-MM-dd hh:mm');
+		   var item = {
+				name: finalStr
+				};
+				completedList.push(item);
+		 };
+	}
+})();
+
+</script>
